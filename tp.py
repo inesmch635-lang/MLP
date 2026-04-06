@@ -13,20 +13,16 @@ x=inputs[:,0]
 y=inputs[:,1]
 z=f(x,y)
 
-
 # normalisation des entrées (x et y) dans la plage [-1, 1]
 inputs_norm = inputs / 5.0 
 
-
 z_min, z_max = np.min(z), np.max(z)
-z_norm = (z - z_min) / (z_max - z_min) # تجعل القيم بين 0 و 1
+z_norm = (z - z_min) / (z_max - z_min)
 
-
-
+#virtualisation
 fig = plt.figure(figsize=(10, 7))
 ax = fig.add_subplot(111, projection='3d')
 
-# رسم النقاط مع تلوينها بناءً على الارتفاع (c=z_real)
 scatter = ax.scatter(x, y, z, c=z, cmap='viridis')
 plt.colorbar(scatter)
 ax.set_title("Vérité Terrain (La Carte de l'Île)")
