@@ -21,5 +21,5 @@ $$f(x, y) = \sin(\sqrt{x^2 + y^2}) + 0.5 \cos(2x + 2y)$$
 1. **Installer les dépendances :**
    ```bash
    pip install -r requirements.txt
-   ```
    python tp.py
+   ```
