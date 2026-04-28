@@ -45,19 +45,44 @@ class MLP:
         return np.maximum(0, x)
 
     def forward(self, x):
+        self.a = [x]
+        self.z_list = []
+
         activation = x
         # Parcours des couches cachées
         for i in range(len(self.weights) - 1):
             z = np.dot(activation, self.weights[i]) + self.biases[i]
+            self.z_list.append(z)
             activation = self.relu(z)
+            self.a.append(activation)
         
         # Couche de sortie (Linéaire pour la régression)
         output = np.dot(activation, self.weights[-1]) + self.biases[-1]
+        self.a.append(output)
         return output
 
     def compute_mse(self, y_true, y_pred):
         return np.mean((y_true - y_pred)**2)
-
+    
+    # --- Étape 3 : Backpropagation ---
+    def backward(self, y_true, y_pred, lr):
+        m = y_true.shape[0]
+        
+        # 1. Calcul du gradient de la perte par rapport à la sortie
+        dz = y_pred - y_true 
+        
+        # 2. mise à jour des poids de la dernière couche à la première
+        for i in reversed(range(len(self.weights))):
+            dw = np.dot(self.a[i].T, dz) / m
+            db = np.sum(dz, axis=0, keepdims=True) / m
+            
+            if i > 0:
+                #différentiel de la fonction d'activation ReLU
+                dz = np.dot(dz, self.weights[i].T) * (self.z_list[i-1] > 0)
+            
+            # mise à jour des poids et des biais
+            self.weights[i] = self.weights[i] - lr * dw
+            self.biases[i] = self.biases[i] - lr * db
 
 # Exécution du Modèle
 
@@ -75,10 +100,56 @@ print(f"Dataset généré avec {inputs_norm.shape[0]} points.")
 print(f"Architecture du réseau : {mlp_model.layers}")
 print(f"MSE Loss initial (avant entraînement) : {initial_loss:.6f}")
 
-# --- Visualisation de la Vérité Terrain ---
-fig = plt.figure(figsize=(10, 6))
-ax = fig.add_subplot(111, projection='3d')
-scatter = ax.scatter(x_coords, y_coords, z_raw, c=z_raw, cmap='viridis')
-plt.colorbar(scatter, label='Altitude Z')
-ax.set_title("Visualisation 3D du Dataset (Vérité Terrain)")
+# --- Étape 4 : Entraînement ---
+mlp_model = MLP(layers=[2, 64, 64, 1])
+epochs = 1000
+learning_rate = 0.01
+losses = []
+
+print("Start Training...")
+for epoch in range(epochs):
+    # Forward pass
+    predictions = mlp_model.forward(inputs_norm)
+    
+    # Calcul du MSE
+    loss = np.mean((z_norm - predictions)**2)
+    losses.append(loss)
+    
+    # Backward pass (mise à jour des poids)
+    mlp_model.backward(z_norm, predictions, learning_rate)
+    
+    if epoch % 100 == 0:
+        print(f"Epoch {epoch} -> Loss: {loss:.6f}")
+
+# --- Visualisation Final  ---
+
+# 1. Courbe de la perte (Loss) au fil des epochs
+plt.figure()
+plt.plot(losses)
+plt.title("Loss vs Epochs")
+plt.xlabel("Epoch")
+plt.ylabel("MSE")
+
+# 2. Surface prédite par le MLP vs la vérité terrain
+grid = np.linspace(-5, 5, 40)
+gx, gy = np.meshgrid(grid, grid)
+test_inputs = np.c_[gx.ravel(), gy.ravel()]
+test_norm = test_inputs / 5.0
+
+pred_norm = mlp_model.forward(test_norm)
+# Denormalization des prédictions
+pred_final = pred_norm * (z_max - z_min) + z_min
+gz_pred = pred_final.reshape(gx.shape)
+
+fig = plt.figure(figsize=(12, 6))
+# Vérité terrain
+ax1 = fig.add_subplot(121, projection='3d')
+ax1.plot_surface(gx, gy, f(gx, gy), cmap='viridis')
+ax1.set_title("Ground Truth")
+
+# Prédiction du ML
+ax2 = fig.add_subplot(122, projection='3d')
+ax2.plot_surface(gx, gy, gz_pred, cmap='magma')
+ax2.set_title("MLP Prediction")
+
 plt.show()
