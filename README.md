@@ -17,7 +17,7 @@ $$f(x, y) = \sin(\sqrt{x^2 + y^2}) + 0.5 \cos(2x + 2y)$$
 - **Architecture Modulaire :** Structure par défaut [2, 64, 64, 1] optimisée pour l'ajustement de surfaces non-linéaires.
 - **Normalisation des Données :** Utilisation du Min-Max Scaling pour les cibles et normalisation standard pour les entrées afin d'assurer la stabilité du gradient.
 
-## 🛠️ Installation et Utilisation
+##  Installation et Utilisation
 
 1. **Installer les dépendances :**
    ```bash
