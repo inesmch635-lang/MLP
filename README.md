@@ -1,6 +1,5 @@
-# Full Name : Mecheter Ines 
 # Approximation de Surface par MLP : L'Explorateur d'Île 
-**Nom Complet : Mecheter Ines**
+## Nom Complet : Mecheter Ines##
 
 ## Présentation du Projet
 Ce projet implémente un **Perceptron Multi-Couches (MLP)** à partir de zéro (from scratch) en utilisant **NumPy** pour résoudre un problème de régression complexe. L'objectif est de simuler un "explorateur" qui doit redessiner la carte topographique d'une île à partir de points d'altitude dispersés.
