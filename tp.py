@@ -15,7 +15,7 @@ x_coords = raw_inputs[:, 0]
 y_coords = raw_inputs[:, 1]
 z_raw = f(x_coords, y_coords)
 
-print(x_coords, y_coords)
+
 # 3. Normalisation
 # Entrées (x, y) ramenées à [-1, 1]
 inputs_norm = raw_inputs / 5.0
@@ -28,10 +28,13 @@ z_norm = z_norm.reshape(-1, 1) # Format (2000, 1) pour le réseau
 
 # Étape 2 : Architecture du Réseau (MLP)
 class MLP:
-    def __init__(self, layers):
+    def __init__(self, layers, gamma=0.9):
         self.layers = layers
+        self.gamma = gamma # Paramètre du Momentum (0 pour SGD standard, 0.9 pour Momentum)
         self.weights = []
         self.biases = []
+        self.v_weights = [] # Initialisation des vecteurs de vitesse pour le Momentum
+        self.v_biases = []
         
         
         for i in range(len(layers) - 1):
@@ -40,6 +43,9 @@ class MLP:
             b = np.zeros((1, layers[i+1]))
             self.weights.append(w)
             self.biases.append(b)
+            # Les vitesses sont initialisées à zéro
+            self.v_weights.append(np.zeros_like(w))
+            self.v_biases.append(np.zeros_like(b))
 
     def relu(self, x):
         return np.maximum(0, x)
@@ -80,6 +86,12 @@ class MLP:
                 #différentiel de la fonction d'activation ReLU
                 dz = np.dot(dz, self.weights[i].T) * (self.z_list[i-1] > 0)
             
+
+            # --- Mise à jour avec Momentum ---
+            # Si gamma=0, cela revient exactement à la descente de gradient standard
+            self.v_weights[i] = self.gamma * self.v_weights[i] + lr * dw
+            self.v_biases[i] = self.gamma * self.v_biases[i] + lr * db
+
             # mise à jour des poids et des biais
             self.weights[i] = self.weights[i] - lr * dw
             self.biases[i] = self.biases[i] - lr * db
@@ -88,7 +100,7 @@ class MLP:
 
 
 # Initialisation du modèle [2, 64, 64, 1]
-mlp_model = MLP(layers=[2, 64, 64, 1])
+mlp_model = MLP(layers=[2, 64, 64, 1], gamma=0.9)
 
 # Test du Forward pass avec les données générées
 predictions = mlp_model.forward(inputs_norm)
@@ -101,12 +113,12 @@ print(f"Architecture du réseau : {mlp_model.layers}")
 print(f"MSE Loss initial (avant entraînement) : {initial_loss:.6f}")
 
 # --- Étape 4 : Entraînement ---
-mlp_model = MLP(layers=[2, 64, 64, 1])
+mlp_model = MLP(layers=[2, 64, 64, 1],gamma=0.9)
 epochs = 1000
 learning_rate = 0.01
 losses = []
 
-print("Start Training...")
+print(f"Start Training...(Gamma={mlp_model.gamma})")
 for epoch in range(epochs):
     # Forward pass
     predictions = mlp_model.forward(inputs_norm)
@@ -124,11 +136,12 @@ for epoch in range(epochs):
 # --- Visualisation Final  ---
 
 # 1. Courbe de la perte (Loss) au fil des epochs
-plt.figure()
-plt.plot(losses)
-plt.title("Loss vs Epochs")
-plt.xlabel("Epoch")
+plt.figure(figsize=(8, 5))
+plt.plot(losses,color='blue', linewidth=2)
+plt.title("Évolution de la Perte (MSE) vs Époques")
+plt.xlabel("Époques")
 plt.ylabel("MSE")
+plt.grid(True, alpha=0.3)
 
 # 2. Surface prédite par le MLP vs la vérité terrain
 grid = np.linspace(-5, 5, 40)
@@ -141,15 +154,16 @@ pred_norm = mlp_model.forward(test_norm)
 pred_final = pred_norm * (z_max - z_min) + z_min
 gz_pred = pred_final.reshape(gx.shape)
 
-fig = plt.figure(figsize=(12, 6))
+fig = plt.figure(figsize=(14, 7))
 # Vérité terrain
 ax1 = fig.add_subplot(121, projection='3d')
-ax1.plot_surface(gx, gy, f(gx, gy), cmap='viridis')
-ax1.set_title("Ground Truth")
+ax1.plot_surface(gx, gy, f(gx, gy), cmap='viridis',alpha=0.8)
+ax1.set_title("Ground Truth (Fonction Réelle)")
 
-# Prédiction du ML
+# Prédiction du MLP
 ax2 = fig.add_subplot(122, projection='3d')
-ax2.plot_surface(gx, gy, gz_pred, cmap='magma')
-ax2.set_title("MLP Prediction")
+ax2.plot_surface(gx, gy, gz_pred, cmap='magma',alpha=0.8)
+ax2.set_title(f"MLP Prediction (Gamma={mlp_model.gamma})")
 
+plt.tight_layout()
 plt.show()
