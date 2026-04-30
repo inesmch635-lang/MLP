@@ -18,7 +18,7 @@ L'objectif principal est de démontrer la capacité d'un réseau de neurones art
 
 1.  **Cloner le dépôt :**
     ```bash
-    git clone [https://github.com/inesmch635-lang/MLP.git](https://github.com/inesmch635-lang/MLP.git)
+    git clone [Dépôt GitHub du projet MLP](https://github.com/inesmch635-lang/MLP.git)
     cd MLP
     ```
 2.  **Installer les dépendances :**
@@ -46,5 +46,5 @@ L'ajout du terme de **Momentum** ($\gamma=0.9$) a permis de réduire considérab
 ##  Rapport Technique
 Pour une analyse approfondie des hyperparamètres, de l'impact de la capacité du réseau et des démonstrations mathématiques, veuillez consulter le rapport complet :
 
- **[Consulter le Rapport Final (PDF)](./votre_nom_rapport.pdf)** *(Remplacez le lien par le nom exact de votre fichier PDF)*
+ **[Consulter le Rapport Final (PDF)](./votre_nom_rapport.pdf)** 
 
