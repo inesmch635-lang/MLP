@@ -46,5 +46,5 @@ L'ajout du terme de **Momentum** ($\gamma=0.9$) a permis de réduire considérab
 ##  Rapport Technique
 Pour une analyse approfondie des hyperparamètres, de l'impact de la capacité du réseau et des démonstrations mathématiques, veuillez consulter le rapport complet :
 
- **[Consulter le Rapport Final (PDF)](./votre_nom_rapport.pdf)** 
+ **[Consulter le Rapport Final (PDF)](./rapport_TP RIC.pdf)** 
 
